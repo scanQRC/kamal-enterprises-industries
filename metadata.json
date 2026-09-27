@@ -1,0 +1,8 @@
+{
+  "name": "KAMAL BUSINESS",
+  "description": "Premium commercial website and PWA for Kamal Enterprises and Kamal Industries.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
