@@ -3,6 +3,7 @@ import { X, Lock, Shield, Mail, Phone, KeyRound, AlertCircle, CheckCircle2, Arro
 import { useApp } from '../../context/AppContext';
 import { AUTHORISED_USERS } from '../../data/mockData';
 import { KamalLogo } from '../common/KamalLogo';
+import { useModalDismiss } from '../../hooks/useModalDismiss';
 
 export const AdminLoginModal: React.FC = () => {
   const { showLoginModal, setShowLoginModal, login, loginWithGoogle } = useApp();
@@ -13,6 +14,20 @@ export const AdminLoginModal: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleClose = () => {
+    setShowLoginModal(false);
+    setStep('email');
+    setErrorMsg('');
+  };
+
+  const { handleBackdropClick } = useModalDismiss({
+    isOpen: showLoginModal,
+    onDismiss: handleClose,
+    closeOnEsc: true,
+    closeOnBackdrop: true,
+    historyKey: 'admin-login',
+  });
 
   if (!showLoginModal) return null;
 
@@ -75,6 +90,8 @@ export const AdminLoginModal: React.FC = () => {
     <div
       role="dialog"
       aria-modal="true"
+      aria-labelledby="modal-login-title"
+      onClick={handleBackdropClick}
       className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
     >
       <div
@@ -84,20 +101,20 @@ export const AdminLoginModal: React.FC = () => {
         {/* Header with KamalLogo Asset Slot */}
         <div className="flex items-start justify-between pb-4 border-b border-stone-200">
           <div>
-            <KamalLogo size="md" variant="light" showSubtitle={true} subtitleText="ADMIN PORTAL" />
+            <div id="modal-login-title">
+              <KamalLogo size="md" variant="light" showSubtitle={true} subtitleText="ADMIN PORTAL" />
+            </div>
             <p className="text-[11px] text-stone-500 mt-1">Authorised Store &amp; Operational Access</p>
           </div>
 
           <button
-            onClick={() => {
-              setShowLoginModal(false);
-              setStep('email');
-              setErrorMsg('');
-            }}
+            onClick={handleClose}
             type="button"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-700 cursor-pointer"
+            aria-label="Close login dialog"
+            title="Close (Esc)"
+            className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:bg-stone-300 text-stone-700 hover:text-stone-950 flex items-center justify-center transition-colors cursor-pointer border border-stone-200/80 shadow-2xs"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 stroke-[2.2]" />
           </button>
         </div>
 

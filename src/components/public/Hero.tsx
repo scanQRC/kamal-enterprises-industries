@@ -39,8 +39,13 @@ export const Hero: React.FC = () => {
         */}
         <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-transparent sm:w-3/5 lg:w-1/2 pointer-events-none" />
 
-        {/* Mobile Light Wash: Ensures readability on narrow viewports */}
-        <div className="sm:hidden absolute inset-0 bg-gradient-to-b from-white/95 via-white/85 to-white/40 pointer-events-none" />
+        {/* 
+          Mobile Controlled Local Gradient Wash:
+          Protects high-contrast readability behind text on left/top only,
+          while preserving vivid colors, contrast, and clarity of cyclists and mountains on the right.
+        */}
+        <div className="sm:hidden absolute inset-0 bg-gradient-to-r from-white/95 via-white/60 via-50% to-transparent w-full pointer-events-none" />
+        <div className="sm:hidden absolute inset-0 bg-gradient-to-b from-white/80 via-transparent to-transparent max-h-[45%] pointer-events-none" />
       </div>
 
       {/* 

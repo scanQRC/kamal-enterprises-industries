@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, Star, ShieldCheck, Check, Phone, Share2, Info, MessageSquare } from 'lucide-react';
+import { Star, Check, Phone, ArrowLeft } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { Product } from '../../types';
-import { FIRMS, PRODUCT_STOCKS, REVIEWS } from '../../data/mockData';
+import { REVIEWS } from '../../data/mockData';
 import { ProductSilhouette } from '../common/BrandVisuals';
+import { ModalHeader } from '../common/ModalHeader';
+import { useModalDismiss } from '../../hooks/useModalDismiss';
 
 export const ProductDetailModal: React.FC = () => {
   const { selectedProduct, setSelectedProduct } = useApp();
@@ -12,10 +13,20 @@ export const ProductDetailModal: React.FC = () => {
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [newReview, setNewReview] = useState({ name: '', location: '', rating: 5, comment: '' });
 
+  const handleClose = () => {
+    setSelectedProduct(null);
+  };
+
+  const { handleBackdropClick } = useModalDismiss({
+    isOpen: Boolean(selectedProduct),
+    onDismiss: handleClose,
+    closeOnEsc: true,
+    closeOnBackdrop: true,
+    historyKey: 'product',
+  });
+
   if (!selectedProduct) return null;
 
-  // Find firm stock isolation records
-  const stockRecords = PRODUCT_STOCKS.filter((s) => s.productId === selectedProduct.id);
   const reviews = REVIEWS.filter((r) => r.productId === selectedProduct.id && r.isApproved);
 
   const handleReviewSubmit = (e: React.FormEvent) => {
@@ -28,41 +39,35 @@ export const ProductDetailModal: React.FC = () => {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in"
+      aria-labelledby="modal-product-title"
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in"
     >
       <div
-        className="relative w-full max-w-3xl bg-[#FAF8F5] rounded-2xl border border-stone-200 shadow-2xl overflow-hidden text-left"
+        className="relative w-full max-w-3xl bg-[#FAF8F5] rounded-3xl border border-stone-200 shadow-2xl overflow-hidden text-left flex flex-col max-h-[92vh] sm:max-h-[88vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top bar with close */}
-        <div className="sticky top-0 z-10 bg-[#FAF8F5]/95 backdrop-blur-md px-5 py-3.5 border-b border-stone-200 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-stone-500 font-medium">
-            <span className="font-semibold text-stone-800">{selectedProduct.brand}</span>
-            <span aria-hidden="true">·</span>
-            <span className="font-mono text-[11px]">SKU: {selectedProduct.sku}</span>
-          </div>
-
-          <button
-            onClick={() => setSelectedProduct(null)}
-            type="button"
-            aria-label="Close product view"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-800 hover:bg-stone-200/50 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        {/* Sticky Top Header with Title on Left, Back & Large Accessible Close Button on Right */}
+        <ModalHeader
+          title={<span id="modal-product-title">{selectedProduct.name}</span>}
+          subtitle={`${selectedProduct.brand} · SKU: ${selectedProduct.sku}`}
+          onClose={handleClose}
+          onBack={handleClose}
+          backLabel="Back"
+          closeAriaLabel="Close product specifications"
+        />
 
         {/* Modal scrollable body */}
-        <div className="max-h-[80vh] overflow-y-auto p-5 sm:p-8 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-7 space-y-6">
           {/* Main product visual & core details */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
             {/* Left image carrier */}
-            <div className="md:col-span-5 bg-white rounded-xl border border-stone-200 overflow-hidden">
+            <div className="md:col-span-5 bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-2xs">
               <div className="relative aspect-4/3 w-full">
                 <ProductSilhouette type={selectedProduct.categoryId} name={selectedProduct.name} />
               </div>
 
-              {/* Barcode representation for future camera barcode matching */}
+              {/* Barcode representation */}
               <div className="p-3 bg-stone-50 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500 font-mono">
                 <span>EAN-13:</span>
                 <span className="font-bold text-stone-800">{selectedProduct.barcode}</span>
@@ -71,6 +76,10 @@ export const ProductDetailModal: React.FC = () => {
 
             {/* Right details */}
             <div className="md:col-span-7 space-y-3">
+              <div className="inline-block px-2.5 py-0.5 rounded-md bg-stone-200/70 text-stone-700 text-[11px] font-semibold tracking-wide uppercase">
+                {selectedProduct.brand}
+              </div>
+
               <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 leading-tight">
                 {selectedProduct.name}
               </h2>
@@ -79,7 +88,7 @@ export const ProductDetailModal: React.FC = () => {
               </p>
 
               {/* Price block */}
-              <div className="pt-2 flex items-baseline gap-3">
+              <div className="pt-2 flex items-baseline gap-3 flex-wrap">
                 <span className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 tabular-nums">
                   ₹{selectedProduct.indicativePrice.toLocaleString('en-IN')}
                 </span>
@@ -99,7 +108,7 @@ export const ProductDetailModal: React.FC = () => {
                   </span>
                   <span className="font-medium text-emerald-800 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-                    <span>In Stock · Available for Showroom Inspection</span>
+                    <span>In Stock · Available for Inspection</span>
                   </span>
                 </div>
                 <p className="mt-1 text-[11px] text-stone-500 font-light">
@@ -110,8 +119,8 @@ export const ProductDetailModal: React.FC = () => {
               {/* Inquiry Action */}
               <div className="pt-3">
                 {inquirySent ? (
-                  <div className="p-3 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-medium flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600" />
+                  <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-medium flex items-center gap-2 border border-emerald-200">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Inquiry sent to showroom floor. Our representative will contact you.</span>
                   </div>
                 ) : (
@@ -119,9 +128,9 @@ export const ProductDetailModal: React.FC = () => {
                     <button
                       onClick={() => setInquirySent(true)}
                       type="button"
-                      className="flex-1 min-h-[44px] rounded-lg bg-[#181614] text-white text-xs font-medium hover:bg-stone-800 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 min-h-[44px] px-4 rounded-xl bg-[#181614] text-white text-xs font-semibold hover:bg-stone-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                     >
-                      <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <Phone className="w-4 h-4 text-[#D4AF37]" />
                       <span>Inquire / Reserve at Showroom</span>
                     </button>
                   </div>
@@ -135,7 +144,8 @@ export const ProductDetailModal: React.FC = () => {
             <div className="flex items-center gap-4 border-b border-stone-200 pb-2">
               <button
                 onClick={() => setActiveTab('specs')}
-                className={`text-xs font-medium pb-2 -mb-2.5 transition-colors cursor-pointer ${
+                type="button"
+                className={`text-xs font-semibold pb-2 -mb-2.5 transition-colors cursor-pointer min-h-[40px] ${
                   activeTab === 'specs'
                     ? 'text-stone-900 border-b-2 border-[#781D22]'
                     : 'text-stone-500 hover:text-stone-800'
@@ -145,7 +155,8 @@ export const ProductDetailModal: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('reviews')}
-                className={`text-xs font-medium pb-2 -mb-2.5 transition-colors cursor-pointer ${
+                type="button"
+                className={`text-xs font-semibold pb-2 -mb-2.5 transition-colors cursor-pointer min-h-[40px] ${
                   activeTab === 'reviews'
                     ? 'text-stone-900 border-b-2 border-[#781D22]'
                     : 'text-stone-500 hover:text-stone-800'
@@ -162,7 +173,7 @@ export const ProductDetailModal: React.FC = () => {
                   {selectedProduct.description}
                 </p>
 
-                <div className="rounded-xl border border-stone-200 overflow-hidden bg-white">
+                <div className="rounded-xl border border-stone-200 overflow-hidden bg-white shadow-2xs">
                   <table className="w-full text-left text-xs">
                     <tbody>
                       {Object.entries(selectedProduct.specifications).map(([key, val], idx) => (
@@ -239,7 +250,7 @@ export const ProductDetailModal: React.FC = () => {
                   )}
                 </div>
 
-                {/* Write Review Form (Moderated before publication) */}
+                {/* Write Review Form */}
                 <div className="p-4 rounded-xl bg-stone-100/70 border border-stone-200 text-left">
                   <h4 className="text-xs font-semibold text-stone-900 uppercase tracking-wider mb-1">
                     Submit a Showroom Review
@@ -249,7 +260,7 @@ export const ProductDetailModal: React.FC = () => {
                   </p>
 
                   {reviewSubmitted ? (
-                    <div className="p-3 bg-emerald-100/70 text-emerald-800 rounded-lg text-xs">
+                    <div className="p-3 bg-emerald-100/70 text-emerald-800 rounded-lg text-xs font-medium">
                       Thank you. Your review has been submitted for moderation and will appear after verification.
                     </div>
                   ) : (
@@ -261,14 +272,14 @@ export const ProductDetailModal: React.FC = () => {
                           value={newReview.name}
                           onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
                           placeholder="Your Name"
-                          className="h-9 px-3 rounded-lg border border-stone-300 bg-white"
+                          className="h-10 px-3 rounded-lg border border-stone-300 bg-white"
                         />
                         <input
                           type="text"
                           value={newReview.location}
                           onChange={(e) => setNewReview({ ...newReview, location: e.target.value })}
                           placeholder="City / Area"
-                          className="h-9 px-3 rounded-lg border border-stone-300 bg-white"
+                          className="h-10 px-3 rounded-lg border border-stone-300 bg-white"
                         />
                       </div>
                       <textarea
@@ -281,7 +292,7 @@ export const ProductDetailModal: React.FC = () => {
                       />
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-lg bg-[#181614] text-white text-xs font-medium hover:bg-stone-800"
+                        className="px-4 py-2.5 rounded-lg bg-[#181614] text-white text-xs font-semibold hover:bg-stone-800 cursor-pointer min-h-[44px]"
                       >
                         Submit Review for Moderation
                       </button>
@@ -291,6 +302,26 @@ export const ProductDetailModal: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Modal Bottom Sticky Dismiss Bar: Guaranteed secondary exit point */}
+        <div className="px-4 sm:px-6 py-3 border-t border-stone-200 bg-stone-50 flex items-center justify-between gap-3 shrink-0">
+          <button
+            onClick={handleClose}
+            type="button"
+            className="inline-flex items-center gap-1.5 text-xs text-stone-600 hover:text-stone-900 font-semibold cursor-pointer min-h-[44px] px-2"
+          >
+            <ArrowLeft className="w-4 h-4 text-stone-500" />
+            <span>← Back to Listing</span>
+          </button>
+
+          <button
+            onClick={handleClose}
+            type="button"
+            className="px-5 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold transition-colors cursor-pointer min-h-[44px]"
+          >
+            Close Details
+          </button>
         </div>
       </div>
     </div>

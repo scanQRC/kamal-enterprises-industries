@@ -145,11 +145,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [prefilledBarcode, setPrefilledBarcode] = useState('');
   const [reviewDraft, setReviewDraft] = useState<OCRDraft | null>(null);
 
-  // Sync route on hash changes or back button
+  // Sync route on hash changes or back button (Requirement 5)
   useEffect(() => {
     const handlePopState = () => {
       const hash = window.location.hash;
-      if (hash.startsWith('#catalogue/')) {
+
+      // 1. If any modal was open, close it first
+      if (selectedProduct) {
+        setSelectedProduct(null);
+        return;
+      }
+      if (showLoginModal) {
+        setShowLoginModal(false);
+        return;
+      }
+      if (isScannerOpen) {
+        setIsScannerOpen(false);
+        return;
+      }
+      if (isBillUploadOpen) {
+        setIsBillUploadOpen(false);
+        return;
+      }
+      if (isAddProductOpen) {
+        setIsAddProductOpen(false);
+        return;
+      }
+
+      // 2. If in admin sub-module, go back to admin dashboard
+      if (view === 'admin' && activeAdminModule !== 'dashboard') {
+        setActiveAdminModule('dashboard');
+        return;
+      }
+
+      // 3. Routing
+      if (hash.startsWith('#product/')) {
+        const pId = hash.replace('#product/', '');
+        const found = products.find((p) => p.id === pId);
+        if (found) setSelectedProduct(found);
+      } else if (hash.startsWith('#catalogue/')) {
         const parts = hash.split('/');
         const f = parts[1] as FirmId;
         if (f === 'kamal-enterprises' || f === 'kamal-industries') {
@@ -171,7 +205,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [currentUser, view]);
+  }, [
+    currentUser,
+    view,
+    selectedProduct,
+    showLoginModal,
+    isScannerOpen,
+    isBillUploadOpen,
+    isAddProductOpen,
+    activeAdminModule,
+    products,
+  ]);
 
   const login = (email: string, otp: string): { success: boolean; message: string } => {
     const cleanEmail = email.trim().toLowerCase();
@@ -488,6 +532,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const navigateToHome = () => {
+    setSelectedProduct(null);
+    setShowLoginModal(false);
+    setIsScannerOpen(false);
+    setIsBillUploadOpen(false);
+    setIsAddProductOpen(false);
     setView('landing');
     window.location.hash = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });

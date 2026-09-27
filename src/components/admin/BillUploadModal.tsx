@@ -24,6 +24,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import { FIRMS } from '../../data/mockData';
 import { OCRDraft } from '../../types';
+import { useModalDismiss } from '../../hooks/useModalDismiss';
 
 interface BillLineItem {
   id: string;
@@ -222,6 +223,16 @@ export const BillUploadModal: React.FC = () => {
     setBillPreviewUrl(null);
     setIsLowQualitySource(false);
   };
+
+  // Only allow backdrop click to dismiss during upload or confirmed steps
+  // Prevent accidental backdrop dismiss during active review to avoid data loss
+  const { handleBackdropClick } = useModalDismiss({
+    isOpen: isBillUploadOpen,
+    onDismiss: handleClose,
+    closeOnEsc: true,
+    closeOnBackdrop: step === 'upload' || step === 'confirmed',
+    historyKey: 'bill-upload',
+  });
 
   // ==========================================
   // H. TAKE PHOTO WORKFLOW
@@ -500,47 +511,58 @@ export const BillUploadModal: React.FC = () => {
   if (!isBillUploadOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-3xl max-w-4xl w-full overflow-hidden shadow-2xl border border-stone-200 flex flex-col max-h-[94vh]">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-billupload-title"
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
+    >
+      <div
+        className="bg-white rounded-3xl max-w-4xl w-full overflow-hidden shadow-2xl border border-stone-200 flex flex-col max-h-[94vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Hidden Canvas for Camera Capture */}
         <canvas ref={canvasRef} className="hidden" />
 
         {/* ======================================================== */}
-        {/* MODAL HEADER */}
+        {/* MODAL HEADER (Sticky & Accessible) */}
         {/* ======================================================== */}
-        <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50/90">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#781D22]/10 text-[#781D22] flex items-center justify-center">
+        <div className="sticky top-0 z-20 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50/95 backdrop-blur-md">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+            <div className="w-9 h-9 rounded-xl bg-[#781D22]/10 text-[#781D22] flex items-center justify-center shrink-0">
               <FileUp className="w-4 h-4" />
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-stone-900 leading-tight">
+            <div className="min-w-0 flex-1">
+              <h3 id="modal-billupload-title" className="text-sm sm:text-base font-bold text-stone-900 leading-tight truncate">
                 Add Purchase — Bill Entry ({firm.shortName})
               </h3>
-              <p className="text-[11px] text-stone-500">
+              <p className="text-[11px] text-stone-500 truncate">
                 Phase: {step.replace('_', ' ').toUpperCase()} · Mandate: Zero Silent Stock Edits
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {step === 'review' && billPreviewUrl && (
               <button
                 onClick={() => setViewOriginalModal(true)}
                 type="button"
-                className="px-2.5 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-100 text-stone-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                className="min-h-[44px] px-3 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
                 <Eye className="w-3.5 h-3.5" />
-                <span>View Original Bill</span>
+                <span className="hidden sm:inline">View Original Bill</span>
               </button>
             )}
 
             <button
               onClick={handleClose}
               type="button"
-              className="w-8 h-8 rounded-full hover:bg-stone-200 flex items-center justify-center text-stone-500 cursor-pointer"
+              aria-label="Close Bill Entry dialog"
+              title="Close (Esc)"
+              className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:bg-stone-300 text-stone-700 hover:text-stone-950 flex items-center justify-center transition-colors cursor-pointer border border-stone-200/80 shadow-2xs"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5 stroke-[2.2]" />
             </button>
           </div>
         </div>
@@ -1265,23 +1287,33 @@ export const BillUploadModal: React.FC = () => {
       {/* R. VIEW ORIGINAL BILL MODAL (Requirement R) */}
       {/* ==================================================== */}
       {viewOriginalModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-5 space-y-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Original Source Bill"
+          onClick={() => setViewOriginalModal(false)}
+          className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-md animate-in fade-in"
+        >
+          <div
+            className="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-6 space-y-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b pb-3">
               <div>
-                <h4 className="text-sm font-bold text-stone-900">Original Source Bill</h4>
+                <h4 className="text-sm sm:text-base font-bold text-stone-900">Original Source Bill</h4>
                 <p className="text-[11px] text-stone-500 font-mono">{billFileName}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setViewOriginalModal(false)}
-                className="w-8 h-8 rounded-full hover:bg-stone-100 flex items-center justify-center text-stone-500"
+                aria-label="Close original bill preview"
+                className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="max-h-[70vh] overflow-y-auto flex items-center justify-center bg-stone-50 rounded-2xl p-2">
+            <div className="max-h-[70vh] overflow-y-auto flex items-center justify-center bg-stone-50 rounded-2xl p-2 border border-stone-200">
               {billPreviewUrl ? (
                 <img
                   src={billPreviewUrl}
@@ -1300,7 +1332,7 @@ export const BillUploadModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setViewOriginalModal(false)}
-                className="px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-semibold"
+                className="min-h-[44px] px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold cursor-pointer"
               >
                 Close Viewer
               </button>

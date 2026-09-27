@@ -20,6 +20,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import { FIRMS } from '../../data/mockData';
 import { Product } from '../../types';
+import { useModalDismiss } from '../../hooks/useModalDismiss';
 
 export const UniversalScannerModal: React.FC = () => {
   const {
@@ -303,6 +304,14 @@ export const UniversalScannerModal: React.FC = () => {
     setIsAddProductOpen(true);
   };
 
+  const { handleBackdropClick } = useModalDismiss({
+    isOpen: isScannerOpen,
+    onDismiss: handleClose,
+    closeOnEsc: true,
+    closeOnBackdrop: true,
+    historyKey: 'scanner',
+  });
+
   if (!isScannerOpen) return null;
 
   const currentFirmStock = matchedProduct
@@ -311,62 +320,78 @@ export const UniversalScannerModal: React.FC = () => {
     : 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-stone-200 flex flex-col max-h-[92vh]">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-scanner-title"
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
+    >
+      <div
+        className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-stone-200 flex flex-col max-h-[92vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* ======================================================== */}
         {/* HEADER: Title & Back / Close */}
         {/* ======================================================== */}
-        <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50/90">
-          <div className="flex items-center gap-2.5">
+        <div className="sticky top-0 z-20 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50/95 backdrop-blur-md">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
             {scannerMode !== 'CHOICE' ? (
               <button
                 onClick={handleBack}
                 type="button"
-                className="w-8 h-8 rounded-full hover:bg-stone-200 flex items-center justify-center text-stone-700 cursor-pointer"
+                aria-label="Back to Scanner Options"
+                title="Back"
+                className="min-h-[44px] min-w-[44px] rounded-xl hover:bg-stone-200 active:bg-stone-300 flex items-center justify-center text-stone-700 cursor-pointer shrink-0"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-5 h-5" />
               </button>
             ) : (
-              <div className="w-8 h-8 rounded-xl bg-stone-900 text-white flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-stone-900 text-white flex items-center justify-center shrink-0">
                 <ScanLine className="w-4 h-4 text-[#D4AF37]" />
               </div>
             )}
-            <div>
-              <h3 className="text-sm font-bold text-stone-900 leading-tight">
+            <div className="min-w-0 flex-1">
+              <h3 id="modal-scanner-title" className="text-sm sm:text-base font-bold text-stone-900 leading-tight truncate">
                 {scannerMode === 'CHOICE'
                   ? 'Universal Scanner'
                   : scannerMode === 'QR'
                   ? 'QR Scanner'
                   : 'Barcode Scanner'}
               </h3>
-              <p className="text-[11px] text-stone-500">
+              <p className="text-[11px] text-stone-500 truncate">
                 {scannerContextTitle || `Tenant: ${firm.name}`}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {/* Flash / Torch button where supported */}
             {torchSupported && scannerMode !== 'CHOICE' && (
               <button
                 onClick={toggleTorch}
                 type="button"
-                className={`p-2 rounded-xl border text-xs font-semibold cursor-pointer ${
+                aria-label="Toggle Torch"
+                title="Toggle Torch"
+                className={`min-h-[44px] px-3 rounded-xl border text-xs font-semibold flex items-center gap-1 cursor-pointer ${
                   isTorchOn
                     ? 'bg-amber-100 border-amber-300 text-amber-900'
                     : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-100'
                 }`}
               >
                 <Flashlight className="w-4 h-4" />
+                <span className="hidden sm:inline text-[11px]">{isTorchOn ? 'Torch On' : 'Torch'}</span>
               </button>
             )}
 
             <button
               onClick={handleClose}
               type="button"
-              className="w-8 h-8 rounded-full hover:bg-stone-200/80 flex items-center justify-center text-stone-500 cursor-pointer"
+              aria-label="Close Scanner"
+              title="Close (Esc)"
+              className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:bg-stone-300 text-stone-700 hover:text-stone-950 flex items-center justify-center transition-colors cursor-pointer border border-stone-200/80 shadow-2xs"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5 stroke-[2.2]" />
             </button>
           </div>
         </div>

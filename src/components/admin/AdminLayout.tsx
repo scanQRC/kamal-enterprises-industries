@@ -219,10 +219,12 @@ export const AdminLayout: React.FC = () => {
               onClick={navigateToHome}
               title="Return to Public Website"
               type="button"
-              className="min-h-[40px] px-3.5 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 hover:text-slate-950 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+              aria-label="Back to Public Website"
+              className="min-h-[44px] px-3 sm:px-3.5 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 hover:text-slate-950 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs shrink-0"
             >
               <ArrowLeft className="w-4 h-4 text-[#A31D1D]" />
-              <span>Back to Website</span>
+              <span className="hidden xs:inline">Back to </span>
+              <span>Website</span>
             </button>
 
             <button
@@ -348,6 +350,35 @@ export const AdminLayout: React.FC = () => {
 
         {/* Dynamic Center Work Area */}
         <main className="flex-1 min-w-0 pb-20 lg:pb-8">
+          {/* Sub-module contextual Back navigation (Requirement 4) */}
+          {activeAdminModule !== 'dashboard' && (
+            <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-2xl bg-white border border-stone-200/90 shadow-2xs flex items-center justify-between gap-3 animate-in fade-in">
+              <button
+                onClick={() => setActiveAdminModule('dashboard')}
+                type="button"
+                aria-label="Back to Admin Dashboard"
+                className="min-h-[44px] px-3.5 sm:px-4 rounded-xl bg-stone-100 hover:bg-stone-200 active:bg-stone-300 text-stone-800 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer border border-stone-200/80 shadow-2xs"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#A31D1D]" />
+                <span>← Back to Dashboard</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline text-xs text-stone-400 font-mono">
+                  {firm.shortName} · {activeAdminModule}
+                </span>
+                <button
+                  onClick={navigateToHome}
+                  type="button"
+                  aria-label="Back to Website Home"
+                  className="min-h-[44px] px-3 rounded-xl hover:bg-stone-100 text-stone-600 hover:text-stone-900 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <span>Website Home</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {activeAdminModule === 'dashboard' && <DashboardModule />}
           {activeAdminModule === 'stock-search' && <StockSearchModule title="Fast Stock Search" />}
           {activeAdminModule === 'barcode-scan' && <BarcodeScanModule />}

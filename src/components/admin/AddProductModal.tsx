@@ -3,6 +3,8 @@ import { PackagePlus, X, Check, AlertCircle } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { FIRMS } from '../../data/mockData';
 import { Product } from '../../types';
+import { ModalHeader } from '../common/ModalHeader';
+import { useModalDismiss } from '../../hooks/useModalDismiss';
 
 export const AddProductModal: React.FC = () => {
   const {
@@ -44,6 +46,14 @@ export const AddProductModal: React.FC = () => {
     setSuccessMsg(null);
   };
 
+  const { handleBackdropClick } = useModalDismiss({
+    isOpen: isAddProductOpen,
+    onDismiss: handleClose,
+    closeOnEsc: true,
+    closeOnBackdrop: true,
+    historyKey: 'add-product',
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -78,29 +88,31 @@ export const AddProductModal: React.FC = () => {
   if (!isAddProductOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-stone-200 flex flex-col max-h-[92vh]">
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50/80">
-          <div className="flex items-center gap-2.5">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-addproduct-title"
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
+    >
+      <div
+        className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-stone-200 flex flex-col max-h-[92vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Sticky Accessible Header */}
+        <ModalHeader
+          title={<span id="modal-addproduct-title">Add New Product ({firm.shortName})</span>}
+          subtitle="Manual Master Catalogue Entry"
+          icon={
             <div className="w-8 h-8 rounded-xl bg-stone-900 text-white flex items-center justify-center">
               <PackagePlus className="w-4 h-4 text-[#D4AF37]" />
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-stone-900 leading-tight">
-                Add New Master Product ({firm.shortName})
-              </h3>
-              <p className="text-[11px] text-stone-500">Manual Catalogue Entry</p>
-            </div>
-          </div>
-          <button
-            onClick={handleClose}
-            type="button"
-            className="w-8 h-8 rounded-full hover:bg-stone-200/70 flex items-center justify-center text-stone-500 cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+          }
+          onClose={handleClose}
+          onBack={handleClose}
+          backLabel="Back"
+          closeAriaLabel="Close Add Product dialog"
+        />
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-3.5 text-xs text-left">
