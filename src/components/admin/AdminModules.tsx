@@ -744,7 +744,7 @@ export const PurchaseOCRModule: React.FC = () => {
 // 4. SALE / BILLING MODULE (with Barcode Scan Workflow)
 // ==========================================
 export const SaleBillingModule: React.FC = () => {
-  const { adminFirm, products, addSaleInvoice, setIsScannerOpen, openScanner } = useApp();
+  const { adminFirm, products, addSaleInvoice, setIsScannerOpen, openScanner, setActiveAdminModule } = useApp();
   const firm = FIRMS[adminFirm];
 
   const [cart, setCart] = useState<
@@ -886,6 +886,23 @@ export const SaleBillingModule: React.FC = () => {
             <span className="font-mono text-xs font-semibold text-stone-600">
               Series: {firm.id === 'kamal-enterprises' ? 'KE-INV-26' : 'KI-INV-26'}
             </span>
+          </div>
+
+          {/* Quick Bill Offline Memo Link Banner */}
+          <div className="mt-3 p-3 rounded-2xl bg-amber-50 border border-amber-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-[#781D22] shrink-0" />
+              <span className="text-stone-800 font-medium">
+                Looking for <strong>Quick / Dasti Customer Bill</strong> (Kamal Cycle World standalone offline memo)?
+              </span>
+            </div>
+            <button
+              onClick={() => setActiveAdminModule('quick-bill')}
+              type="button"
+              className="px-3.5 py-1.5 rounded-xl bg-[#781D22] hover:bg-[#60171B] text-white font-bold text-xs cursor-pointer shadow-2xs transition-colors shrink-0"
+            >
+              Open Quick Bill →
+            </button>
           </div>
 
           {/* Barcode Fast-Entry Bar (Requirement 7) */}

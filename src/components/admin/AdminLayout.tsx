@@ -44,6 +44,7 @@ import { CustomersModule } from './AdminModulesPart2';
 import { UniversalScannerModal } from './UniversalScannerModal';
 import { BillUploadModal } from './BillUploadModal';
 import { AddProductModal } from './AddProductModal';
+import { QuickBillModule } from './quickbill/QuickBillModule';
 
 export const AdminLayout: React.FC = () => {
   const {
@@ -59,6 +60,11 @@ export const AdminLayout: React.FC = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [firmDropdownOpen, setFirmDropdownOpen] = useState(false);
 
+  // STRICT PRIVATE PROTECTION: If unauthenticated, never render AdminLayout
+  if (!currentUser) {
+    return null;
+  }
+
   const firm = FIRMS[adminFirm];
   const isEnterprises = adminFirm === 'kamal-enterprises';
   const isSuperAdmin = currentUser?.allowedFirms.length === 2;
@@ -66,6 +72,7 @@ export const AdminLayout: React.FC = () => {
   // Operational priority items (common to both firms)
   const operationalItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'quick-bill', label: 'Quick Bill (Offline)', icon: Receipt },
     { id: 'stock-search', label: 'Stock Search', icon: Search },
     { id: 'barcode-scan', label: 'Barcode Scan', icon: ScanLine },
     { id: 'sale-billing', label: 'Sale / Billing', icon: Receipt },
@@ -380,6 +387,7 @@ export const AdminLayout: React.FC = () => {
           )}
 
           {activeAdminModule === 'dashboard' && <DashboardModule />}
+          {activeAdminModule === 'quick-bill' && <QuickBillModule />}
           {activeAdminModule === 'stock-search' && <StockSearchModule title="Fast Stock Search" />}
           {activeAdminModule === 'barcode-scan' && <BarcodeScanModule />}
           {activeAdminModule === 'sale-billing' && <SaleBillingModule />}
@@ -530,6 +538,21 @@ export const AdminLayout: React.FC = () => {
         >
           <LayoutDashboard className="w-4 h-4 mb-0.5" />
           <span>Dashboard</span>
+        </button>
+
+        <button
+          onClick={() => setActiveAdminModule('quick-bill')}
+          type="button"
+          className={`flex flex-col items-center justify-center min-h-[48px] text-[10px] font-medium transition-colors ${
+            activeAdminModule === 'quick-bill'
+              ? isEnterprises
+                ? 'text-[#781D22] font-bold'
+                : 'text-stone-900 font-bold'
+              : 'text-stone-500'
+          }`}
+        >
+          <Receipt className="w-4 h-4 mb-0.5 text-[#D4AF37]" />
+          <span>Quick Bill</span>
         </button>
 
         <button

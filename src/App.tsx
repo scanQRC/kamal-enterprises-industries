@@ -22,9 +22,21 @@ import { AdminLayout } from './components/admin/AdminLayout';
 import { OfflineIndicator } from './components/pwa/OfflineIndicator';
 
 function MainRouter() {
-  const { view } = useApp();
+  const { view, currentUser, setShowLoginModal } = useApp();
 
+  // STRICT PRIVATE ROUTE: Only an authenticated Admin or authorized staff user may access
   if (view === 'admin') {
+    if (!currentUser) {
+      // Unauthenticated access attempt: Redirect to Admin Login immediately
+      return (
+        <div className="min-h-screen flex flex-col bg-[#FAF9F6]">
+          <Header />
+          <AdminLoginModal />
+          <Footer />
+          <OfflineIndicator />
+        </div>
+      );
+    }
     return (
       <>
         <AdminLayout />

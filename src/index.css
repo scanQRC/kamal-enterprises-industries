@@ -43,3 +43,44 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Dedicated Print Styles for Quick Bill (Strict: Print Customer Bill ONLY) */
+@media print {
+  /* Hide all app shells, headers, navbars, sidebars, buttons */
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+
+  /* Make only the active printable bill document visible and full page */
+  .quickbill-printable-area,
+  .quickbill-printable-area * {
+    visibility: visible;
+  }
+
+  .quickbill-printable-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .no-print,
+  button,
+  header,
+  nav,
+  aside,
+  footer {
+    display: none !important;
+  }
+}

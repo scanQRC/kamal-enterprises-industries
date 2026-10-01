@@ -31,6 +31,16 @@ export const QuickActionGrid: React.FC = () => {
 
   const actions = [
     {
+      id: 'quick-bill',
+      label: 'Quick Bill',
+      sub: 'Offline / Dasti Memo',
+      icon: Receipt,
+      iconColor: 'text-[#781D22]',
+      bgColor: 'bg-amber-100/70',
+      highlight: true,
+      onClick: () => setActiveAdminModule('quick-bill'),
+    },
+    {
       id: 'new-sale',
       label: 'New Sale',
       sub: 'POS Counter Bill',

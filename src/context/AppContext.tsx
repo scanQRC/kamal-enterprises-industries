@@ -86,16 +86,64 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [view, setView] = useState<'landing' | 'catalogue' | 'admin'>('landing');
+  // Restore authenticated session from sessionStorage if valid
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    try {
+      const stored = sessionStorage.getItem('kamal_auth_user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const match = AUTHORISED_USERS.find(
+          (u) => u.email.toLowerCase() === parsed.email?.toLowerCase() && u.isActive
+        );
+        return match || null;
+      }
+    } catch (e) {
+      console.warn('Session restoration error:', e);
+    }
+    return null;
+  });
+
+  const [view, setView] = useState<'landing' | 'catalogue' | 'admin'>(() => {
+    // Check initial hash
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash === '#admin') {
+        const stored = sessionStorage.getItem('kamal_auth_user');
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            const match = AUTHORISED_USERS.find(
+              (u) => u.email.toLowerCase() === parsed.email?.toLowerCase() && u.isActive
+            );
+            if (match) return 'admin';
+          } catch (e) {
+            // ignore
+          }
+        }
+        // Unauthenticated access attempt to #admin: NEVER set view to admin!
+        return 'landing';
+      }
+      if (hash.startsWith('#catalogue/')) return 'catalogue';
+    }
+    return 'landing';
+  });
+
   const [publicFirm, setPublicFirm] = useState<FirmId>('kamal-enterprises');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
-  // Admin state
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [adminFirm, setAdminFirm] = useState<FirmId>('kamal-enterprises');
+  const [adminFirm, setAdminFirm] = useState<FirmId>(() => {
+    return 'kamal-enterprises';
+  });
   const [activeAdminModule, setActiveAdminModule] = useState<string>('dashboard');
-  const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
+  const [showLoginModal, setShowLoginModal] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#admin') {
+      // If entered #admin without valid session, prompt login modal immediately
+      const stored = sessionStorage.getItem('kamal_auth_user');
+      return !stored;
+    }
+    return false;
+  });
 
   // Live Inventory & Transaction State
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
@@ -238,6 +286,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     setCurrentUser(user);
+    sessionStorage.setItem('kamal_auth_user', JSON.stringify({ email: user.email }));
     if (user.allowedFirms.length === 1) {
       setAdminFirm(user.allowedFirms[0]);
     } else if (!user.allowedFirms.includes(adminFirm)) {
@@ -270,6 +319,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     setCurrentUser(user);
+    sessionStorage.setItem('kamal_auth_user', JSON.stringify({ email: user.email }));
     if (user.allowedFirms.length === 1) {
       setAdminFirm(user.allowedFirms[0]);
     } else {
@@ -287,6 +337,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = () => {
+    sessionStorage.removeItem('kamal_auth_user');
     setCurrentUser(null);
     setView('landing');
     window.location.hash = '';
